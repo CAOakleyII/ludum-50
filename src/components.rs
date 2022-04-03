@@ -10,5 +10,5 @@ pub use self::velocity::*;
 mod stats;
 pub use self::stats::*;
 
-mod animation_state;
-pub use self::animation_state::*;
+mod state;
+pub use self::state::*;

@@ -1,4 +1,5 @@
 use bevy::{prelude::Component, math::Vec3};
+use strum::{EnumIter, EnumString, Display};
 
 #[derive(Component)]
 pub struct Direction {
@@ -7,7 +8,7 @@ pub struct Direction {
     pub new_direction: bool
 }
 
-#[derive(Clone, Hash, PartialEq, Eq, Debug)]
+#[derive(Clone, Hash, PartialEq, Eq, EnumIter, EnumString, Display)]
 pub enum DirectionName {
     Left,
     Up,

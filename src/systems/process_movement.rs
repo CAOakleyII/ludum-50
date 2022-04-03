@@ -23,12 +23,16 @@ pub fn determine_movement_state(
         if velocity.vector == Vec3::ZERO {
             movement_state = State {
                 kind: StateKind::Idle,
-                interruptable: true
+                interruptable: true,
+                should_loop: true,
+                running: false
             };
         } else {
             movement_state = State {
                 kind: StateKind::Run,
-                interruptable: true
+                interruptable: true,
+                should_loop: true,
+                running: false
             };
         }
         state.next_states.insert(movement_state);

@@ -15,9 +15,9 @@ fn main() {
     .add_system(player_input)
     .add_system(player_aim)
     .add_system(process_movement)
-    .add_system(determine_direction)
     .add_system(determine_movement_state)
     .add_system(process_state_queues)
     .add_system(animate_player_states)
+    .add_system(player_combat_input)
     .add_plugins(DefaultPlugins).run();
 }

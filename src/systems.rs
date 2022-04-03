@@ -10,8 +10,5 @@ pub use self::player_input::*;
 mod process_movement;
 pub use self::process_movement::*;
 
-mod determine_direction;
-pub use self::determine_direction::*;
-
 mod process_states;
 pub use self::process_states::*;

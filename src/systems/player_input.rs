@@ -1,28 +1,35 @@
 use bevy::prelude::*;
 
-use crate::components::{Velocity, Speed, Player, Aim};
+use crate::components::{Velocity, Speed, Player, Aim, Stateful, StateKind, Direction, DirectionName};
 
 pub fn player_input(
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&mut Velocity, &Speed), With<Player>>
+    mut query: Query<(&mut Velocity, &Speed, &Stateful, &mut Direction), With<Player>>
 ){
-
-    let (mut velocity, speed) = query.single_mut();
+    let (mut velocity, speed, stateful, mut direction) = query.single_mut();
 
     let mut force_x = 0.0f32;
     let mut force_y = 0.0f32;
 
-    if keyboard_input.pressed(KeyCode::A) {
-        force_x -= 1.0;
-    }
-    if keyboard_input.pressed(KeyCode::D) {
-        force_x += 1.0;
-    }
-    if keyboard_input.pressed(KeyCode::W) {
-        force_y += 1.0;
-    }
-    if keyboard_input.pressed(KeyCode::S) {
-        force_y -= 1.0;
+    let current_direction_name = direction.name.clone();
+
+    if stateful.current_state.kind != StateKind::MeleeAttack {
+        if keyboard_input.pressed(KeyCode::A) {
+            direction.name = DirectionName::Left;
+            force_x -= 1.0;
+        }
+        if keyboard_input.pressed(KeyCode::D) {
+            direction.name = DirectionName::Right;
+            force_x += 1.0;
+        }
+        if keyboard_input.pressed(KeyCode::W) {
+            direction.name = DirectionName::Up;
+            force_y += 1.0;
+        }
+        if keyboard_input.pressed(KeyCode::S) {
+            direction.name = DirectionName::Down;
+            force_y -= 1.0;
+        }
     }
 
     // Force Normalization
@@ -35,8 +42,56 @@ pub fn player_input(
         force_y = force_y / length;
     }
 
+    if current_direction_name != direction.name {
+        direction.new_direction = true
+    } else {
+        direction.new_direction = false
+    }
+
     velocity.vector.x = force_x * speed.value;
     velocity.vector.y = force_y * speed.value;
+}
+
+pub fn player_combat_input(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut query: Query<&mut Stateful, With<Player>>
+) {
+    let mut state = query.single_mut();
+
+    if keyboard_input.just_pressed(KeyCode::J) {
+        println!("Melee attack added.");
+        let melee_attack = crate::components::State {
+            kind: StateKind::MeleeAttack,
+            interruptable: false,
+            should_loop: false,
+            running: false
+        };
+        state.next_states.insert(melee_attack);
+    }
+
+    if keyboard_input.just_pressed(KeyCode::K) {
+        // charging
+        let charge_bow_attack = crate::components::State {
+            kind: StateKind::ChargeBow,
+            interruptable: false,
+            should_loop: true,
+            running: false
+        };
+        state.next_states.insert(charge_bow_attack);
+    }
+
+    if keyboard_input.just_released(KeyCode::K) {
+        state.current_state.interruptable = true;
+
+        let release_bow_attack = crate::components::State {
+            kind: StateKind::ReleaseBow,
+            interruptable: false,
+            should_loop: false,
+            running: false // TODO: Make true with seperate interuptlevels
+        };
+        state.next_states.insert(release_bow_attack);
+        // shooot arrow
+    }
 }
 
 pub fn player_aim(
