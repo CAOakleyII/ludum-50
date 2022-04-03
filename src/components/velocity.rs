@@ -1,16 +1,14 @@
-use bevy::prelude::Component;
+use bevy::{prelude::Component, math::Vec3};
 
 #[derive(Component)]
 pub struct Velocity {
-    pub x: f32,
-    pub y: f32
+    pub vector: Vec3
 }
 
 impl Default for Velocity {
     fn default() -> Self {
         Self {
-            x: 0.0,
-            y: 0.0
+            vector: Vec3::new(0.0, 0.0, 0.0)
         }
     }
 }

@@ -1,5 +1,5 @@
-mod aim_vector;
-pub use self::aim_vector::*;
+mod direction;
+pub use self::direction::*;
 
 mod player;
 pub use self::player::*;
@@ -9,3 +9,6 @@ pub use self::velocity::*;
 
 mod stats;
 pub use self::stats::*;
+
+mod animation_state;
+pub use self::animation_state::*;

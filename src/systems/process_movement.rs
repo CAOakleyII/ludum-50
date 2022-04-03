@@ -1,6 +1,6 @@
-use bevy::prelude::*;
+use bevy::{prelude::*};
 
-use crate::components::{Velocity};
+use crate::components::{Velocity, Stateful, State, StateKind};
 
 pub fn process_movement(
     delta_time: Res<Time>,
@@ -9,7 +9,29 @@ pub fn process_movement(
     for (mut transform, velocity) in query.iter_mut() {
         let dt = delta_time.delta_seconds();
 
-        transform.translation.x += velocity.x * dt;
-        transform.translation.y += velocity.y * dt;
+        transform.translation.x += velocity.vector.x * dt;
+        transform.translation.y += velocity.vector.y * dt;
     }
+}
+
+pub fn determine_movement_state(
+    mut query: Query<(&mut Stateful, &Velocity)>
+){
+    for (mut state, velocity) in query.iter_mut() {
+        let movement_state;
+
+        if velocity.vector == Vec3::ZERO {
+            movement_state = State {
+                kind: StateKind::Idle,
+                interruptable: true
+            };
+        } else {
+            movement_state = State {
+                kind: StateKind::Run,
+                interruptable: true
+            };
+        }
+        state.next_states.insert(movement_state);
+    }
+
 }
