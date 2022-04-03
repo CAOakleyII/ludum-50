@@ -13,7 +13,10 @@ pub fn player_input(
 
     let current_direction_name = direction.name.clone();
 
-    if stateful.current_state.kind != StateKind::MeleeAttack {
+    // Add some sort of Rooted state
+    if stateful.current_state.kind != StateKind::MeleeAttack && 
+        stateful.current_state.kind != StateKind::ChargeBow &&
+         stateful.current_state.kind != StateKind::ReleaseBow {
         if keyboard_input.pressed(KeyCode::A) {
             direction.name = DirectionName::Left;
             force_x -= 1.0;
@@ -81,7 +84,9 @@ pub fn player_combat_input(
     }
 
     if keyboard_input.just_released(KeyCode::K) {
-        state.current_state.interruptable = true;
+        if state.current_state.kind == StateKind::ChargeBow {
+            state.current_state.interruptable = true;
+        }
 
         let release_bow_attack = crate::components::State {
             kind: StateKind::ReleaseBow,

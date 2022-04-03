@@ -10,7 +10,8 @@ use crate::systems::*;
 
 fn main() {
     App::new()
-    .add_startup_system(player_spawner.label("player_spawner"))
+    .add_startup_system(player_spawner)
+    .add_startup_system(insert_ai_resources)
     .add_system(animate_sprites)
     .add_system(player_input)
     .add_system(player_aim)

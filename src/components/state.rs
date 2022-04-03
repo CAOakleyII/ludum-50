@@ -1,12 +1,6 @@
-use std::collections::{HashSet};
-
-use bevy::{prelude::{Component}, math::Vec2};
+use std::collections::HashSet;
+use bevy::{prelude::Component, math::Vec3};
 use strum::{EnumIter, EnumString, Display};
-
-#[derive(Component)]
-pub struct EntityType {
-    pub name: String,
-}
 
 #[derive(Component, Clone)]
 pub struct Stateful {
@@ -44,17 +38,30 @@ pub enum StateKind {
     Run,
     MeleeAttack,
     ChargeBow,
-    ReleaseBow
+    ReleaseBow,
+    ChargeMelee
 }
 
 impl StateKind {
-    pub fn frame_data(self) -> Vec2{
+    // Frame Data { Columns, Rows, TotalFrames }
+    pub fn player_frame_data(self) -> Vec3{
         match self {
-            Self::Idle => Vec2::new(5.0, 1.0),
-            Self::Run => Vec2::new(6.0, 1.0),
-            Self::MeleeAttack => Vec2::new(27.0, 1.0),
-            Self::ChargeBow => Vec2::new(5.0, 1.0),
-            Self::ReleaseBow => Vec2::new(6.0, 1.0),
+            Self::Idle => Vec3::new(5.0, 1.0, 5.0),
+            Self::Run => Vec3::new(6.0, 1.0, 6.0),
+            Self::MeleeAttack => Vec3::new(27.0, 1.0, 27.0),
+            Self::ChargeBow => Vec3::new(5.0, 1.0, 5.0),
+            Self::ReleaseBow => Vec3::new(6.0, 1.0, 6.0),
+            _ => Vec3::ZERO
+        }
+    }
+
+    pub fn ball_chain_bot_frame_data(self) -> Vec3 {
+        match self {
+            Self::Idle => Vec3::new(5.0, 1.0, 5.0),
+            Self::Run => Vec3::new(8.0, 1.0, 8.0),
+            Self::MeleeAttack => Vec3::new(8.0, 1.0, 8.0),
+            Self::ChargeMelee => Vec3::new(4.0, 1.0, 4.0),
+            _ => Vec3::ZERO
         }
     }
 }
