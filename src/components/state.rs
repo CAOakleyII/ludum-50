@@ -38,6 +38,8 @@ pub struct State {
 pub enum StateKind {
     Idle,
     Run,
+    Jump,
+    Fall,
     MeleeAttack,
     ChargeBow,
     ReleaseBow,
@@ -50,6 +52,8 @@ impl StateKind {
         match self {
             Self::Idle => Vec3::new(5.0, 1.0, 5.0),
             Self::Run => Vec3::new(6.0, 1.0, 6.0),
+            Self::Jump => Vec3::new(4.0, 1.0, 4.0),
+            Self::Fall => Vec3::new(4.0, 1.0, 4.0),
             Self::MeleeAttack => Vec3::new(27.0, 1.0, 27.0),
             Self::ChargeBow => Vec3::new(5.0, 1.0, 5.0),
             Self::ReleaseBow => Vec3::new(6.0, 1.0, 6.0),
@@ -79,7 +83,7 @@ pub struct HealthBar;
 pub struct Grounded;
 
 #[derive(Component)]
-pub struct Ground;
+pub struct Ground(pub f32);
 
 #[derive(Component)]
 pub struct Rooted;
@@ -87,5 +91,6 @@ pub struct Rooted;
 #[derive(Component)]
 pub struct Jumping {
     pub force: f32,
-    pub timer: Timer
+    pub timer: Timer,
+    pub float_timer: Timer,
 }

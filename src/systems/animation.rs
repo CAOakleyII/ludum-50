@@ -33,12 +33,11 @@ pub fn draw_health_bars(
     
             let polygon = shapes::Rectangle { 
                 origin: RectangleOrigin::TopLeft,
-                extents: Vec2::new(40.0 * (current_health.value / max_health.value), 3.0)
+                extents: Vec2::new((40.0 * (current_health.value / max_health.value)).clamp(0.0, 40.0), 3.0)
             };
     
             *path = ShapePath::build_as(&polygon);
         }
-
     }
 }
 
@@ -47,6 +46,7 @@ pub struct DebugShape;
 
 pub fn draw_debug_hitboxes(
     mut commands: Commands,
+    keyboard_input: Res<Input<KeyCode>>,
     remove_query: Query<Entity, With<DebugShape>>,
     query: Query<(&CollisionShape, &Transform)>
 ) {
@@ -54,19 +54,21 @@ pub fn draw_debug_hitboxes(
         commands.entity(entity).despawn()
     }
 
-    for (shape, transform) in query.iter() {
-        let hitbox = shapes::Rectangle { 
-            origin: RectangleOrigin::Center,
-            extents: Vec2::new(shape.width, shape.height)
-        };
-
-        commands.spawn_bundle(GeometryBuilder::build_as(
-            &hitbox,
-            DrawMode::Outlined {
-                fill_mode: FillMode::color(Color::Rgba { red: (1.0), green: (0.0), blue: (0.0), alpha: (0.2) }),
-                outline_mode: StrokeMode::new(Color::BLACK, 1.0),
-            },
-            transform.clone()
-        )).insert(DebugShape);
+    if keyboard_input.pressed(KeyCode::LAlt) {
+        for (shape, transform) in query.iter() {
+            let hitbox = shapes::Rectangle { 
+                origin: RectangleOrigin::Center,
+                extents: Vec2::new(shape.width, shape.height)
+            };
+    
+            commands.spawn_bundle(GeometryBuilder::build_as(
+                &hitbox,
+                DrawMode::Outlined {
+                    fill_mode: FillMode::color(Color::Rgba { red: (1.0), green: (0.0), blue: (0.0), alpha: (0.2) }),
+                    outline_mode: StrokeMode::new(Color::BLACK, 1.0),
+                },
+                transform.clone()
+            )).insert(DebugShape);
+        }
     }
 }

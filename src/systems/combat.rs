@@ -1,8 +1,8 @@
 use std::time::Duration;
 
-use bevy::{prelude::{Query, Transform, With, Commands, Without, Entity, Res}, core::{Timer, Time}};
+use bevy::{prelude::{Query, Transform, With, Commands, Without, Entity, Res, DespawnRecursiveExt}, core::{Timer, Time}};
 
-use crate::components::{Stateful, Player, StateKind, CollisionShape, CollisionMasks, MeleeAttack, Damaged, CurrentHealth, Direction, DirectionName};
+use crate::components::{Stateful, Player, StateKind, CollisionShape, CollisionMasks, MeleeAttack, Damaged, CurrentHealth, Direction, DirectionName, MaxHealth, AI, Ground};
 
 pub fn process_player_combat_states (
     mut commands: Commands,
@@ -45,7 +45,8 @@ pub fn process_player_combat_states (
 pub fn player_melee_attack_collision (
     mut commands: Commands,
     delta_time: Res<Time>,
-    mut query: Query<(&mut MeleeAttack, &CollisionShape), Without<Player>>
+    mut query: Query<(&mut MeleeAttack, &CollisionShape), Without<Player>>,
+    get_entity: Query<Entity>
 ) {
     for (mut melee_attack, collision_shape) in query.iter_mut() {
         melee_attack.timer.tick(delta_time.delta());
@@ -54,9 +55,10 @@ pub fn player_melee_attack_collision (
         }
 
         for entity in collision_shape.collisions.iter() {
-            commands.entity(*entity)
+            if let Ok(_) = get_entity.get(*entity) {
+                commands.entity(*entity)
                 .insert(Damaged(melee_attack.damage));
-
+            }
         }
 
         melee_attack.timer.set_duration(Duration::from_secs_f32(0.9));
@@ -71,5 +73,20 @@ pub fn damage_entity(
     for (mut current_health, damage, entity) in query.iter_mut() {
         current_health.value -= damage.0;
         commands.entity(entity).remove::<Damaged>();
+    }
+}
+
+pub fn destroy_ai(
+    mut commands: Commands,
+    query: Query<(&CurrentHealth, Entity), With<AI>>,
+    mut get_ground: Query<&mut Ground>,
+){
+    for (current_health, entity) in query.iter() {
+        if current_health.value <= 0.0 {
+            for mut ground in get_ground.iter_mut() {
+                ground.0 += 50.0;
+            }
+            commands.entity(entity).despawn_recursive();
+        }
     }
 }

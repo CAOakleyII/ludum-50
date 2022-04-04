@@ -1,6 +1,6 @@
 use bevy::{prelude::{Query, Res, Handle, With, Transform, Commands, Entity}, sprite::{TextureAtlas, TextureAtlasSprite}, math::Vec3};
 
-use crate::{components::{Stateful, Direction, Player, DirectionName, Velocity, StateKind, State, Rooted}, resources::PlayerAnimations};
+use crate::{components::{Stateful, Direction, Player, DirectionName, Velocity, StateKind, State, Rooted, Grounded}, resources::PlayerAnimations};
 
 pub fn process_state_queues(
     mut commands: Commands,
@@ -35,7 +35,7 @@ pub fn process_state_queues(
 }
 
 pub fn determine_movement_state(
-    mut query: Query<(&mut Stateful, &Velocity)>
+    mut query: Query<(&mut Stateful, &Velocity), With<Grounded>>
 ){
     for (mut state, velocity) in query.iter_mut() {
         let movement_state;

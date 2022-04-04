@@ -62,6 +62,7 @@ pub fn player_jump_input(
             commands.entity(entity)
                 .insert(Jumping {
                     force: jump_height.value,
+                    float_timer: Timer::from_seconds(0.09, false),
                     timer: Timer::from_seconds(0.20, false)
                 });
         }

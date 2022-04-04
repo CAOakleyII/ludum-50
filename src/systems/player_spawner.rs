@@ -86,14 +86,30 @@ pub fn player_spawner(
         extents: Vec2::new(20.0, 3.0)
     };
 
-    commands.spawn_bundle(GeometryBuilder::build_as(
+    let health_bar_entity = commands.spawn_bundle(GeometryBuilder::build_as(
         &health_bar,
         DrawMode::Outlined {
             fill_mode: FillMode::color(Color::RED),
-            outline_mode: StrokeMode::new(Color::BLACK, 1.0),
+            outline_mode: StrokeMode::new(Color::BLACK, 0.0),
         },
         Transform::from_xyz(-10.0, 14.0, 0.0),
     ))
     .insert(HealthBar)
-    .insert(Parent(player));
+    .insert(Parent(player))
+    .id();
+
+    let health_bar_outline = shapes::Rectangle { 
+        origin: RectangleOrigin::TopLeft,
+        extents: Vec2::new(21.0, 4.0)
+    };
+
+    commands.spawn_bundle(GeometryBuilder::build_as(
+        &health_bar_outline,
+        DrawMode::Outlined {
+            fill_mode: FillMode::color(Color::rgba(1.0, 1.0, 1.0, 1.0)),
+            outline_mode: StrokeMode::new(Color::BLACK, 1.0),
+        },
+        Transform::from_xyz(-0.5, 0.5, 0.0),
+    ))
+    .insert(Parent(health_bar_entity));
 }

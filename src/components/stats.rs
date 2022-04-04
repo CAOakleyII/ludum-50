@@ -40,7 +40,7 @@ impl Default for StatsBundle {
             jump_height: JumpHeight { value: 350.0 },
             current_health: CurrentHealth { value: 100.0 },
             max_health: MaxHealth { value: 200.0 },
-            gravity: Gravity { value: 125.0 }
+            gravity: Gravity { value: 175.0 }
         }
     }
 }

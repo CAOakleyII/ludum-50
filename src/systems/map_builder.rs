@@ -1,5 +1,5 @@
-use bevy::{prelude::{Commands, Color, Transform}, math::Vec2};
-use bevy_prototype_lyon::{shapes, prelude::{RectangleOrigin, GeometryBuilder, DrawMode, FillMode, StrokeMode}};
+use bevy::{prelude::{Commands, Color, Transform, Res, Query}, math::Vec2, core::{Time, Timer}};
+use bevy_prototype_lyon::{shapes, prelude::{RectangleOrigin, GeometryBuilder, DrawMode, FillMode, StrokeMode, Path, ShapePath}};
 
 use crate::components::{CollisionShape, CollisionMasks, Ground};
 
@@ -26,6 +26,35 @@ pub fn build_map (
         },
         Transform::from_xyz(0.0, -200.0, 0.0),
     ))
+    .insert(Timer::from_seconds(5.0, true))
     .insert(floor_hitbox)
-    .insert(Ground);
+    .insert(Ground(500.0));
+}
+
+pub fn shrink_map (
+    delta_time: Res<Time>,
+    mut query: Query<(&mut Ground, &mut Timer)>,
+) {
+
+    for (mut ground, mut timer) in query.iter_mut() {
+        timer.tick(delta_time.delta());
+        if timer.just_finished() {
+            ground.0 -= 100.0;
+        }
+    }
+
+}
+
+pub fn draw_map (
+    mut query: Query<(&mut Path, &mut CollisionShape, &Ground)>
+) {
+    for (mut path, mut collision_shape, ground) in query.iter_mut() {
+        let ground_shape = shapes::Rectangle { 
+            origin: RectangleOrigin::Center,
+            extents: Vec2::new(ground.0, 50.0)
+        };
+
+        *path = ShapePath::build_as(&ground_shape);
+        collision_shape.width = ground.0;
+    }
 }

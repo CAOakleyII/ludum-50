@@ -35,5 +35,8 @@ fn main() {
     .add_system(tick_collision_shapes)
     .add_system(player_melee_attack_collision)
     .add_system(damage_entity)
+    .add_system(shrink_map)
+    .add_system(draw_map)
+    .add_system(destroy_ai)
     .run();
 }
