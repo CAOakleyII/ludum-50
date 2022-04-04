@@ -1,10 +1,10 @@
-use std::collections::HashMap;
+use std::collections::{HashMap};
 
 use bevy::prelude::*;
 use bevy::sprite::{TextureAtlas, SpriteSheetBundle};
 use bevy::math::Vec2;
 use strum::IntoEnumIterator;
-use crate::components::{Player, Velocity, Aim, Speed, Direction, DirectionName, StateKind, Stateful};
+use crate::components::{Player, Velocity, Aim, Speed, Direction, DirectionName, StateKind, Stateful, Collidables, CollisionShape, CollisionMasks};
 use crate::resources::PlayerAnimations;
 
 pub fn player_spawner(
@@ -48,12 +48,19 @@ pub fn player_spawner(
     camera.orthographic_projection.scale = 0.5;
     commands.spawn_bundle(camera);
 
-
     // create player
     // Idle Animations
     let idle_down_image_handle = asset_server.load("player/down/idle.png");
     let idle_down_texture_atlas = TextureAtlas::from_grid(idle_down_image_handle, Vec2::new(64.0, 64.0), 5, 1);
     let idle_down_texture_atlas_handle = texture_atlases.add(idle_down_texture_atlas);
+
+    let mut collision_shapes = HashMap::new();
+    let player_hitbox = CollisionShape{
+        collides_with: CollisionMasks::AI as i32 | CollisionMasks::AIAttack as i32,
+        ..Default::default() 
+    };
+
+    collision_shapes.insert(player_hitbox.uuid, player_hitbox);
 
     commands.spawn()
         .insert_bundle(SpriteSheetBundle {
@@ -61,6 +68,7 @@ pub fn player_spawner(
             transform: Transform::from_xyz(0.0,0.0,0.0),
             ..Default::default()
         })
+        .insert(Collidables { collision_shapes })
         .insert(Stateful { ..Default::default() })
         .insert(Timer::from_seconds(0.1, true))
         .insert(Player)

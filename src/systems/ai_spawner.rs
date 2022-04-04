@@ -41,12 +41,24 @@ pub fn insert_ai_resources(
     let idle_down_texture_atlas = TextureAtlas::from_grid(idle_down_image_handle, Vec2::new(192.0, 192.0), 5, 1);
     let idle_down_texture_atlas_handle = texture_atlases.add(idle_down_texture_atlas);
 
+    let mut collision_shapes = HashMap::new();
+    let ai_hitbox = CollisionShape{
+        width: 25.0,
+        height: 25.0,
+        mask: CollisionMasks::AI,
+        collides_with: CollisionMasks::Player as i32 | CollisionMasks::PlayerAttack as i32,
+        ..Default::default() 
+    };
+    
+    collision_shapes.insert(ai_hitbox.uuid, ai_hitbox);
+
     commands.spawn()
         .insert_bundle(SpriteSheetBundle {
             texture_atlas: idle_down_texture_atlas_handle,
             transform: Transform::from_xyz(0.0,0.0,0.0),
             ..Default::default()
         })
+        .insert(Collidables { collision_shapes })
         .insert(Stateful { ..Default::default() })
         .insert(Timer::from_seconds(0.1, true))
         .insert(AI)

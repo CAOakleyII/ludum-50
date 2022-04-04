@@ -62,7 +62,6 @@ pub fn player_combat_input(
     let mut state = query.single_mut();
 
     if keyboard_input.just_pressed(KeyCode::J) {
-        println!("Melee attack added.");
         let melee_attack = crate::components::State {
             kind: StateKind::MeleeAttack,
             interruptable: false,

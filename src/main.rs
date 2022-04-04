@@ -14,11 +14,14 @@ fn main() {
     .add_startup_system(insert_ai_resources)
     .add_system(animate_sprites)
     .add_system(player_input)
+    .add_system(player_combat_input)
     .add_system(player_aim)
     .add_system(process_movement)
     .add_system(determine_movement_state)
     .add_system(process_state_queues)
     .add_system(animate_player_states)
-    .add_system(player_combat_input)
+    .add_system(process_player_combat_states)
+    .add_system(process_collisions)
+    .add_system(tick_collision_shapes)
     .add_plugins(DefaultPlugins).run();
 }

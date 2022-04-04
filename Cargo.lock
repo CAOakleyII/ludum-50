@@ -1797,6 +1797,7 @@ dependencies = [
  "bevy",
  "queues",
  "strum",
+ "uuid",
 ]
 
 [[package]]

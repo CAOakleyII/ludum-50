@@ -15,3 +15,6 @@ pub use self::state::*;
 
 mod ai;
 pub use self::ai::*;
+
+mod collision;
+pub use self::collision::*;
