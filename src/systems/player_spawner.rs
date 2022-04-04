@@ -3,8 +3,10 @@ use std::collections::{HashMap};
 use bevy::prelude::*;
 use bevy::sprite::{TextureAtlas, SpriteSheetBundle};
 use bevy::math::Vec2;
+use bevy_prototype_lyon::prelude::{RectangleOrigin, GeometryBuilder, DrawMode, FillMode, StrokeMode};
+use bevy_prototype_lyon::shapes;
 use strum::IntoEnumIterator;
-use crate::components::{Player, Velocity, Aim, Speed, Direction, DirectionName, StateKind, Stateful, Collidables, CollisionShape, CollisionMasks};
+use crate::components::{Player, Velocity, Aim, Direction, DirectionName, StateKind, Stateful, CollisionShape, CollisionMasks, MeleeAttack, StatsBundle, HealthBar};
 use crate::resources::PlayerAnimations;
 
 pub fn player_spawner(
@@ -54,26 +56,44 @@ pub fn player_spawner(
     let idle_down_texture_atlas = TextureAtlas::from_grid(idle_down_image_handle, Vec2::new(64.0, 64.0), 5, 1);
     let idle_down_texture_atlas_handle = texture_atlases.add(idle_down_texture_atlas);
 
-    let mut collision_shapes = HashMap::new();
     let player_hitbox = CollisionShape{
-        collides_with: CollisionMasks::AI as i32 | CollisionMasks::AIAttack as i32,
+        collides_with: CollisionMasks::AI as i32 | CollisionMasks::AIAttack as i32 | CollisionMasks::Ground as i32,
         ..Default::default() 
     };
 
-    collision_shapes.insert(player_hitbox.uuid, player_hitbox);
-
-    commands.spawn()
+    let player = commands.spawn()
         .insert_bundle(SpriteSheetBundle {
             texture_atlas: idle_down_texture_atlas_handle,
             transform: Transform::from_xyz(0.0,0.0,0.0),
             ..Default::default()
         })
-        .insert(Collidables { collision_shapes })
+        .insert(player_hitbox)
         .insert(Stateful { ..Default::default() })
         .insert(Timer::from_seconds(0.1, true))
         .insert(Player)
         .insert(Direction { angle: 0.0, name: crate::components::DirectionName::Down, new_direction: false })
         .insert(Velocity { ..Default::default() })
-        .insert(Speed { value: 100.0 })
-        .insert(Aim { ..Default::default() });
+        .insert_bundle(StatsBundle { ..Default::default() })
+        .insert(Aim { ..Default::default() })
+        .insert(MeleeAttack { 
+            width: 17.0,
+            height: 30.0,
+            ..Default::default() })
+        .id();
+
+    let health_bar = shapes::Rectangle { 
+        origin: RectangleOrigin::TopLeft,
+        extents: Vec2::new(20.0, 3.0)
+    };
+
+    commands.spawn_bundle(GeometryBuilder::build_as(
+        &health_bar,
+        DrawMode::Outlined {
+            fill_mode: FillMode::color(Color::RED),
+            outline_mode: StrokeMode::new(Color::BLACK, 1.0),
+        },
+        Transform::from_xyz(-10.0, 14.0, 0.0),
+    ))
+    .insert(HealthBar)
+    .insert(Parent(player));
 }

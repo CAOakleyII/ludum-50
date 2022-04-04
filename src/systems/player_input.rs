@@ -1,22 +1,18 @@
 use bevy::prelude::*;
 
-use crate::components::{Velocity, Speed, Player, Aim, Stateful, StateKind, Direction, DirectionName};
+use crate::components::{Velocity, Speed, Player, Aim, Stateful, StateKind, Direction, DirectionName, Rooted, Grounded, State, Jumping, JumpHeight};
 
 pub fn player_input(
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&mut Velocity, &Speed, &Stateful, &mut Direction), With<Player>>
+    mut query: Query<(&mut Velocity, &Speed, &mut Direction), (With<Player>, Without<Rooted>)>
 ){
-    let (mut velocity, speed, stateful, mut direction) = query.single_mut();
+    for (mut velocity, speed, mut direction) in query.iter_mut() {
+        let mut force_x = 0.0f32;
+        let mut force_y = 0.0f32;
 
-    let mut force_x = 0.0f32;
-    let mut force_y = 0.0f32;
+        let current_direction_name = direction.name.clone();
 
-    let current_direction_name = direction.name.clone();
-
-    // Add some sort of Rooted state
-    if stateful.current_state.kind != StateKind::MeleeAttack && 
-        stateful.current_state.kind != StateKind::ChargeBow &&
-         stateful.current_state.kind != StateKind::ReleaseBow {
+        // Add some sort of Rooted state
         if keyboard_input.pressed(KeyCode::A) {
             direction.name = DirectionName::Left;
             force_x -= 1.0;
@@ -25,34 +21,52 @@ pub fn player_input(
             direction.name = DirectionName::Right;
             force_x += 1.0;
         }
-        if keyboard_input.pressed(KeyCode::W) {
-            direction.name = DirectionName::Up;
-            force_y += 1.0;
+        // if keyboard_input.pressed(KeyCode::W) {
+        //     direction.name = DirectionName::Up;
+        //     force_y += 1.0;
+        // }
+        // if keyboard_input.pressed(KeyCode::S) {
+        //     direction.name = DirectionName::Down;
+        //     force_y -= 1.0;
+        // }
+
+        // Force Normalization
+        let length = (force_x * force_x + force_y * force_y).sqrt();
+        if length == 0.0 {
+            force_x = 0.0;
+            force_y = 0.0;
+        } else {
+            force_x = force_x / length;
+            force_y = force_y / length;
         }
-        if keyboard_input.pressed(KeyCode::S) {
-            direction.name = DirectionName::Down;
-            force_y -= 1.0;
+
+        if current_direction_name != direction.name {
+            direction.new_direction = true
+        } else {
+            direction.new_direction = false
+        }
+
+        velocity.vector.x = force_x * speed.value;
+        velocity.vector.y = force_y * speed.value;
+    }
+}
+
+pub fn player_jump_input(
+    mut commands: Commands,
+    keyboard_input: Res<Input<KeyCode>>,
+    query: Query<(&JumpHeight, Entity), (With<Player>, With<Grounded>, Without<Rooted>)>
+) {
+
+    for (jump_height, entity) in query.iter() {
+        if keyboard_input.pressed(KeyCode::Space) {
+            commands.entity(entity)
+                .insert(Jumping {
+                    force: jump_height.value,
+                    timer: Timer::from_seconds(0.20, false)
+                });
         }
     }
 
-    // Force Normalization
-    let length = (force_x * force_x + force_y * force_y).sqrt();
-    if length == 0.0 {
-        force_x = 0.0;
-        force_y = 0.0;
-    } else {
-        force_x = force_x / length;
-        force_y = force_y / length;
-    }
-
-    if current_direction_name != direction.name {
-        direction.new_direction = true
-    } else {
-        direction.new_direction = false
-    }
-
-    velocity.vector.x = force_x * speed.value;
-    velocity.vector.y = force_y * speed.value;
 }
 
 pub fn player_combat_input(
@@ -62,22 +76,24 @@ pub fn player_combat_input(
     let mut state = query.single_mut();
 
     if keyboard_input.just_pressed(KeyCode::J) {
-        let melee_attack = crate::components::State {
+        let melee_attack = State {
             kind: StateKind::MeleeAttack,
             interruptable: false,
             should_loop: false,
-            running: false
+            running: false,
+            should_root: true
         };
         state.next_states.insert(melee_attack);
     }
 
     if keyboard_input.just_pressed(KeyCode::K) {
         // charging
-        let charge_bow_attack = crate::components::State {
+        let charge_bow_attack = State {
             kind: StateKind::ChargeBow,
             interruptable: false,
             should_loop: true,
-            running: false
+            running: false,
+            should_root: true
         };
         state.next_states.insert(charge_bow_attack);
     }
@@ -87,11 +103,12 @@ pub fn player_combat_input(
             state.current_state.interruptable = true;
         }
 
-        let release_bow_attack = crate::components::State {
+        let release_bow_attack = State {
             kind: StateKind::ReleaseBow,
             interruptable: false,
             should_loop: false,
-            running: false // TODO: Make true with seperate interuptlevels
+            running: false,
+            should_root: false // TODO: Make true with seperate interuptlevels
         };
         state.next_states.insert(release_bow_attack);
         // shooot arrow

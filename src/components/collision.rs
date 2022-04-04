@@ -1,14 +1,10 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use bevy::{prelude::{Component, Entity}, math::Vec2, core::Timer };
 use strum::Display;
 use uuid::Uuid;
 
 #[derive(Component)]
-pub struct Collidables {
-    pub collision_shapes: HashMap<Uuid, CollisionShape>
-}
-
 pub struct CollisionShape {
     pub uuid: Uuid,
     pub width: f32,
@@ -16,6 +12,7 @@ pub struct CollisionShape {
     pub mask: CollisionMasks,
     pub collides_with: i32,
     pub collisions: HashSet<Entity>,
+    pub collisions_just_ended: HashSet<Entity>,
     pub timer: Timer
 }
 
@@ -28,6 +25,7 @@ impl Default for CollisionShape {
             mask: CollisionMasks::Player,
             collides_with: 0,
             collisions: HashSet::new(),
+            collisions_just_ended: HashSet::new(),
             timer: Timer::from_seconds(1.0, true)
         }
     }
@@ -44,5 +42,6 @@ pub enum CollisionMasks {
     Player = 0x1,
     AI = 0x2,
     PlayerAttack = 0x4,
-    AIAttack = 0x8
+    AIAttack = 0x8,
+    Ground = 0x16
 }

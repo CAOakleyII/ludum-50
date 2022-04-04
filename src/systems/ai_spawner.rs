@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
 use bevy::prelude::*;
+use bevy_prototype_lyon::{shapes, prelude::{RectangleOrigin, DrawMode, GeometryBuilder, FillMode, StrokeMode}};
 use strum::IntoEnumIterator;
 use crate::{components::*, resources::BallChainBotAnimations};
 
@@ -41,29 +42,43 @@ pub fn insert_ai_resources(
     let idle_down_texture_atlas = TextureAtlas::from_grid(idle_down_image_handle, Vec2::new(192.0, 192.0), 5, 1);
     let idle_down_texture_atlas_handle = texture_atlases.add(idle_down_texture_atlas);
 
-    let mut collision_shapes = HashMap::new();
     let ai_hitbox = CollisionShape{
         width: 25.0,
         height: 25.0,
         mask: CollisionMasks::AI,
-        collides_with: CollisionMasks::Player as i32 | CollisionMasks::PlayerAttack as i32,
+        collides_with: CollisionMasks::Player as i32 | CollisionMasks::PlayerAttack as i32 | CollisionMasks::Ground as i32,
         ..Default::default() 
     };
     
-    collision_shapes.insert(ai_hitbox.uuid, ai_hitbox);
-
-    commands.spawn()
+    let ai = commands.spawn()
         .insert_bundle(SpriteSheetBundle {
             texture_atlas: idle_down_texture_atlas_handle,
             transform: Transform::from_xyz(0.0,0.0,0.0),
             ..Default::default()
         })
-        .insert(Collidables { collision_shapes })
+        .insert(ai_hitbox)
         .insert(Stateful { ..Default::default() })
         .insert(Timer::from_seconds(0.1, true))
         .insert(AI)
         .insert(crate::components::Direction { angle: 0.0, name: crate::components::DirectionName::Right, new_direction: false })
         .insert(Velocity { ..Default::default() })
-        .insert(Speed { value: 100.0 })
-        .insert(Aim { ..Default::default() });
+        .insert_bundle(StatsBundle{ ..Default::default() })
+        .insert(Aim { ..Default::default() })
+        .id();
+
+    let health_bar = shapes::Rectangle { 
+        origin: RectangleOrigin::TopLeft,
+        extents: Vec2::new(20.0, 3.0)
+    };
+
+    commands.spawn_bundle(GeometryBuilder::build_as(
+        &health_bar,
+        DrawMode::Outlined {
+            fill_mode: FillMode::color(Color::RED),
+            outline_mode: StrokeMode::new(Color::BLACK, 1.0),
+        },
+        Transform::from_xyz(-10.0, 16.0, 0.0),
+    ))
+    .insert(HealthBar)
+    .insert(Parent(ai));
 }

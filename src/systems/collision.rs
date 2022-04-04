@@ -1,50 +1,55 @@
 use bevy::core::Time;
-use bevy::prelude::{Query, Transform, Res, Entity};
+use bevy::prelude::{Query, Transform, Res, Entity, Commands};
 use bevy::sprite::collide_aabb::*;
 
-use crate::components::{Collidables, CollisionShape};
+use crate::components::CollisionShape;
 
 pub fn process_collisions(
-    mut collidables_query: Query<(&mut Collidables, &Transform, Entity)>,
+    mut collidables_query: Query<(&mut CollisionShape, &Transform, Entity)>,
 ){ 
     // For each collidables, compare against other collidables
     let mut combinations = collidables_query.iter_combinations_mut();
     
     while let Some([
-        (mut collidables, transform, entity),
-        (mut other_collidables, other_transform, other_entity)]) = combinations.fetch_next() 
+        (mut collision_shape, transform, entity),
+        (mut other_collision_shape, other_transform, other_entity)]) = combinations.fetch_next() 
     {
-        for ( _, collision_shape) in collidables.collision_shapes.iter_mut() {
-            for (_, other_collision_shape) in other_collidables.collision_shapes.iter_mut() {
-    
-                if collision_shape.uuid == other_collision_shape.uuid {
-                    continue;
+        if collision_shape.uuid == other_collision_shape.uuid {
+            continue;
+        }
+
+        if !can_collide(&collision_shape, &other_collision_shape) {
+            continue;
+        }
+
+        let is_colliding = collide(
+            transform.translation,
+            collision_shape.size(),
+            other_transform.translation,
+            other_collision_shape.size()
+        );
+        
+        match is_colliding {
+            None => {
+                if collision_shape.collisions.contains(&other_entity) {
+                    collision_shape.collisions.remove(&other_entity);
+                    collision_shape.collisions_just_ended.insert(other_entity);
+                } else {
+                    collision_shape.collisions_just_ended.remove(&other_entity);
                 }
-    
-                if !can_collide(collision_shape, other_collision_shape) {
-                    continue;
+                if other_collision_shape.collisions.contains(&entity) {
+                    other_collision_shape.collisions.remove(&entity);
+                    other_collision_shape.collisions_just_ended.insert(entity);
+                } else {
+                    other_collision_shape.collisions_just_ended.remove(&entity);
                 }
-    
-                let is_colliding = collide(
-                    transform.translation,
-                    collision_shape.size(),
-                    other_transform.translation,
-                    other_collision_shape.size()
-                );
-                
-                match is_colliding {
-                    None => {
-                        collision_shape.collisions.remove(&other_entity);
-                        other_collision_shape.collisions.remove(&entity);
-                    },
-                    Some(_collision_side) => {
-                        collision_shape.collisions.insert(other_entity);
-                        other_collision_shape.collisions.insert(entity);
-                    }
-                }
-    
+            },
+            Some(_collision_side) => {
+                collision_shape.collisions.insert(other_entity);
+                other_collision_shape.collisions.insert(entity);
             }
         }
+
     }
 }
 
@@ -54,26 +59,20 @@ fn can_collide(shape_a: &CollisionShape, shape_b: &CollisionShape) -> bool {
 }
 
 pub fn tick_collision_shapes(
+    mut commands: Commands,
     delta_time: Res<Time>,
-    mut collidables_query: Query<&mut Collidables>
+    mut collidables_query: Query<(&mut CollisionShape, Entity)>
 ) {
-    let mut to_remove = Vec::new();
+    for (mut shape, entity) in collidables_query.iter_mut() {
+        shape.timer.tick(delta_time.delta());
 
-    for mut collidables in collidables_query.iter_mut(){
-        for (uuid, shape) in  collidables.collision_shapes.iter_mut() {
-            shape.timer.tick(delta_time.delta());
-
-            if shape.timer.repeating() {
-                continue;
-            }
-
-            if shape.timer.finished() {
-                to_remove.push(uuid.clone());
-            }
+        if shape.timer.repeating() {
+            continue;
         }
 
-        for uuid in &to_remove {
-            collidables.collision_shapes.remove(&uuid);
+        if shape.timer.finished() {
+           commands.entity(entity).remove::<CollisionShape>();
+           commands.entity(entity).despawn();
         }
     }
 }

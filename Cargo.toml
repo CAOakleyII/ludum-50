@@ -6,7 +6,8 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = "0.6.1"
+bevy = "0.6"
 queues = "1.1.0"
 strum = { version = "0.24", features = ["derive"] }
 uuid = { version = "0.8", features = ["serde", "v4"] }
+bevy_prototype_lyon = "0.4.0"

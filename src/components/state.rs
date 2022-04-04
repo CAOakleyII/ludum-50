@@ -1,5 +1,5 @@
 use std::collections::HashSet;
-use bevy::{prelude::Component, math::Vec3};
+use bevy::{prelude::Component, math::Vec3, core::Timer};
 use strum::{EnumIter, EnumString, Display};
 
 #[derive(Component, Clone)]
@@ -16,7 +16,8 @@ impl Default for Stateful {
                 kind: StateKind::Idle,
                 interruptable: true,
                 should_loop: true,
-                running: true
+                running: true,
+                should_root: false
             },
             next_states: HashSet::new(),
             new_state: false
@@ -30,6 +31,7 @@ pub struct State {
     pub interruptable: bool,
     pub should_loop: bool,
     pub running: bool,
+    pub should_root: bool
 }
 
 #[derive(Clone, Copy, Hash, PartialEq, Eq, EnumIter, EnumString, Display)]
@@ -64,4 +66,26 @@ impl StateKind {
             _ => Vec3::ZERO
         }
     }
+}
+
+
+#[derive(Component)]
+pub struct Damaged(pub f32);
+
+#[derive(Component)]
+pub struct HealthBar;
+
+#[derive(Component)]
+pub struct Grounded;
+
+#[derive(Component)]
+pub struct Ground;
+
+#[derive(Component)]
+pub struct Rooted;
+
+#[derive(Component)]
+pub struct Jumping {
+    pub force: f32,
+    pub timer: Timer
 }

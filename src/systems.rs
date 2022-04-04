@@ -10,6 +10,9 @@ pub use self::collision::*;
 mod combat;
 pub use self::combat::*;
 
+mod map_builder;
+pub use self::map_builder::*;
+
 mod player_input;
 pub use self::player_input::*;
 
