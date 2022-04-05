@@ -52,7 +52,7 @@ pub fn player_spawner(
 
     // create player
     // Idle Animations
-    let idle_down_image_handle = asset_server.load("player/down/idle.png");
+    let idle_down_image_handle = asset_server.load("player/right/idle.png");
     let idle_down_texture_atlas = TextureAtlas::from_grid(idle_down_image_handle, Vec2::new(64.0, 64.0), 5, 1);
     let idle_down_texture_atlas_handle = texture_atlases.add(idle_down_texture_atlas);
 
@@ -64,14 +64,14 @@ pub fn player_spawner(
     let player = commands.spawn()
         .insert_bundle(SpriteSheetBundle {
             texture_atlas: idle_down_texture_atlas_handle,
-            transform: Transform::from_xyz(0.0,0.0,0.0),
+            transform: Transform::from_xyz(0.0,-100.0,0.0),
             ..Default::default()
         })
         .insert(player_hitbox)
         .insert(Stateful { ..Default::default() })
         .insert(Timer::from_seconds(0.1, true))
         .insert(Player)
-        .insert(Direction { angle: 0.0, name: crate::components::DirectionName::Down, new_direction: false })
+        .insert(Direction { angle: 0.0, name: crate::components::DirectionName::Right, new_direction: false, flip_x: 1.0 })
         .insert(Velocity { ..Default::default() })
         .insert_bundle(StatsBundle { ..Default::default() })
         .insert(Aim { ..Default::default() })

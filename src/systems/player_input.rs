@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::components::{Velocity, Speed, Player, Aim, Stateful, StateKind, Direction, DirectionName, Rooted, Grounded, State, Jumping, JumpHeight};
+use crate::components::{Velocity, Speed, Player, Aim, Stateful, StateKind, Direction, DirectionName, Rooted, Grounded, State, Jumping, JumpHeight, DashDistance, Dashing};
 
 pub fn player_input(
     keyboard_input: Res<Input<KeyCode>>,
@@ -62,12 +62,63 @@ pub fn player_jump_input(
             commands.entity(entity)
                 .insert(Jumping {
                     force: jump_height.value,
-                    float_timer: Timer::from_seconds(0.09, false),
+                    float_timer: Timer::from_seconds(0.13, false),
                     timer: Timer::from_seconds(0.20, false)
                 });
         }
     }
+}
 
+pub fn player_dash_input(
+    mut commands: Commands,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut query: Query<(&mut Stateful, &DashDistance, Entity), (With<Player>, Without<Rooted>, Without<Dashing>)>
+) {
+    for (mut state, dash_distance, entity) in query.iter_mut() {
+        if keyboard_input.pressed(KeyCode::Slash) {
+            let movement_state = State {
+                kind: StateKind::Dash,
+                interruptable: false,
+                should_loop: false,
+                running: false,
+                should_root: true
+            };
+            state.next_states.insert(movement_state);
+
+            commands.entity(entity)
+                .insert(Dashing {
+                    force: dash_distance.value,
+                    timer: Timer::from_seconds(0.3, false)
+                });
+        }
+    }
+}
+
+pub fn player_dash_attack_input(
+    mut commands: Commands,
+    keyboard_input: Res<Input<KeyCode>>,
+    mut query: Query<(&mut Stateful, &DashDistance, Entity), (With<Player>, Without<Rooted>, Without<Dashing>)>
+) {
+    for (mut state, dash_distance, entity) in query.iter_mut() {
+        if keyboard_input.pressed(KeyCode::L) {
+            state.current_state.interruptable = true;
+
+            let movement_state = State {
+                kind: StateKind::StabDash,
+                interruptable: false,
+                should_loop: false,
+                running: false,
+                should_root: true,
+            };
+            state.next_states.insert(movement_state);
+            
+            commands.entity(entity)
+                .insert(Dashing {
+                    force: dash_distance.value / 2.0,
+                    timer: Timer::from_seconds(0.3, false)
+                });
+        }
+    }
 }
 
 pub fn player_combat_input(
@@ -88,6 +139,17 @@ pub fn player_combat_input(
     }
 
     if keyboard_input.just_pressed(KeyCode::K) {
+        let melee_attack = State {
+            kind: StateKind::TripleAttack,
+            interruptable: false,
+            should_loop: false,
+            running: false,
+            should_root: true
+        };
+        state.next_states.insert(melee_attack);
+    }
+
+    if keyboard_input.just_pressed(KeyCode::I) {
         // charging
         let charge_bow_attack = State {
             kind: StateKind::ChargeBow,
@@ -99,7 +161,7 @@ pub fn player_combat_input(
         state.next_states.insert(charge_bow_attack);
     }
 
-    if keyboard_input.just_released(KeyCode::K) {
+    if keyboard_input.just_released(KeyCode::I) {
         if state.current_state.kind == StateKind::ChargeBow {
             state.current_state.interruptable = true;
         }

@@ -10,6 +10,11 @@ pub struct JumpHeight {
 }
 
 #[derive(Component)]
+pub struct DashDistance { 
+    pub value: f32 
+}
+
+#[derive(Component)]
 pub struct Gravity {
     pub value: f32
 }
@@ -30,6 +35,7 @@ pub struct StatsBundle {
     pub jump_height: JumpHeight,
     pub current_health: CurrentHealth,
     pub max_health: MaxHealth,
+    pub dash_distance: DashDistance,
     pub gravity: Gravity,
 }
 
@@ -37,9 +43,10 @@ impl Default for StatsBundle {
     fn default() -> Self {
         Self {
             speed: Speed { value: 100.0 },
-            jump_height: JumpHeight { value: 350.0 },
+            jump_height: JumpHeight { value: 375.0 },
             current_health: CurrentHealth { value: 100.0 },
-            max_health: MaxHealth { value: 200.0 },
+            max_health: MaxHealth { value: 100.0 },
+            dash_distance: DashDistance { value: 75.0 },
             gravity: Gravity { value: 175.0 }
         }
     }

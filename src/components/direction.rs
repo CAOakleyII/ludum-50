@@ -5,15 +5,16 @@ use strum::{EnumIter, EnumString, Display};
 pub struct Direction {
     pub angle: f32,
     pub name: DirectionName,
-    pub new_direction: bool
+    pub new_direction: bool,
+    pub flip_x: f32,
 }
 
 #[derive(Clone, Hash, PartialEq, Eq, EnumIter, EnumString, Display)]
 pub enum DirectionName {
     Left,
-    Up,
+    // Up,
     Right,
-    Down
+    // Down
 }
 
 #[derive(Component)]

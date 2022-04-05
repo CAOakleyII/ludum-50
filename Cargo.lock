@@ -1829,6 +1829,7 @@ dependencies = [
  "bevy",
  "bevy_prototype_lyon",
  "queues",
+ "rand",
  "strum",
  "uuid",
 ]

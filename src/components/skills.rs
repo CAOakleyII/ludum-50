@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use bevy::{prelude::{Entity, Component}, core::Timer};
+use bevy::{prelude::{Entity, Component}, core::Timer, math::Vec3};
 
 #[derive(Component, Clone)]
 pub struct MeleeAttack {
@@ -8,7 +8,11 @@ pub struct MeleeAttack {
     pub damage_table: HashSet<Entity>,
     pub width: f32,
     pub height: f32,
+    pub knockback_force: f32,
+    pub offset: Vec3,
+    pub active_frame_length: f32,
     pub timer: Timer,
+    pub full_attack_timer: Timer
 }
 
 impl Default for MeleeAttack {
@@ -18,7 +22,11 @@ impl Default for MeleeAttack {
             damage_table: HashSet::new(),
             width: 20.0,
             height: 20.0,
-            timer: Timer::from_seconds(1.0, false)
+            knockback_force: 100.0, 
+            offset: Vec3::new(0.0, 0.0, 0.0),
+            active_frame_length: 0.0,
+            timer: Timer::from_seconds(1.0, true),
+            full_attack_timer: Timer::from_seconds(1.0, false)
         }
     }
 }

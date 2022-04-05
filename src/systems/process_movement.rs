@@ -1,8 +1,6 @@
-use std::f32::consts::E;
+use bevy::{prelude::*};
 
-use bevy::{prelude::*, ecs::entity::Entities};
-
-use crate::components::{Velocity, Gravity, Grounded, CollisionShape, Ground, Jumping, State, Stateful, StateKind};
+use crate::components::{Velocity, Gravity, Grounded, CollisionShape, Ground, Jumping, State, Stateful, StateKind, Direction, Dashing};
 
 pub fn process_movement(
     delta_time: Res<Time>,
@@ -52,6 +50,23 @@ pub fn process_jumping(
             state.next_states.insert(movement_state);
             commands.entity(entity).remove::<Jumping>();
         }
+    }
+}
+
+pub fn process_dashing(
+    mut commands: Commands,
+    delta_time: Res<Time>,
+    mut query: Query<(&mut Transform, &mut Dashing, &Direction, Entity)> 
+) {
+    for (mut transform, mut dashing, direction, entity) in query.iter_mut() {
+        dashing.timer.tick(delta_time.delta());
+
+        if dashing.timer.finished() {
+            let dashing_force = dashing.force * direction.flip_x;
+            transform.translation.x += dashing_force;
+            commands.entity(entity).remove::<Dashing>();
+        }
+        
     }
 }
 

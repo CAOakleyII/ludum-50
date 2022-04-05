@@ -40,10 +40,12 @@ pub enum StateKind {
     Run,
     Jump,
     Fall,
+    Dash,
+    StabDash,
     MeleeAttack,
+    TripleAttack,
     ChargeBow,
     ReleaseBow,
-    ChargeMelee
 }
 
 impl StateKind {
@@ -54,7 +56,10 @@ impl StateKind {
             Self::Run => Vec3::new(6.0, 1.0, 6.0),
             Self::Jump => Vec3::new(4.0, 1.0, 4.0),
             Self::Fall => Vec3::new(4.0, 1.0, 4.0),
+            Self::Dash => Vec3::new(11.0, 1.0, 11.0),
+            Self::StabDash => Vec3::new(9.0, 1.0, 9.0),
             Self::MeleeAttack => Vec3::new(27.0, 1.0, 27.0),
+            Self::TripleAttack => Vec3::new(33.0, 1.0, 33.0),
             Self::ChargeBow => Vec3::new(5.0, 1.0, 5.0),
             Self::ReleaseBow => Vec3::new(6.0, 1.0, 6.0),
             _ => Vec3::ZERO
@@ -65,8 +70,7 @@ impl StateKind {
         match self {
             Self::Idle => Vec3::new(5.0, 1.0, 5.0),
             Self::Run => Vec3::new(8.0, 1.0, 8.0),
-            Self::MeleeAttack => Vec3::new(8.0, 1.0, 8.0),
-            Self::ChargeMelee => Vec3::new(4.0, 1.0, 4.0),
+            Self::MeleeAttack => Vec3::new(12.0, 1.0, 12.0),
             _ => Vec3::ZERO
         }
     }
@@ -93,4 +97,10 @@ pub struct Jumping {
     pub force: f32,
     pub timer: Timer,
     pub float_timer: Timer,
+}
+
+#[derive(Component)]
+pub struct Dashing {
+    pub force: f32,
+    pub timer: Timer
 }

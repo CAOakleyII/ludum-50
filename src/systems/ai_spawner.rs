@@ -1,9 +1,12 @@
 use std::collections::HashMap;
-
+use rand::prelude::*;
 use bevy::prelude::*;
 use bevy_prototype_lyon::{shapes, prelude::{RectangleOrigin, DrawMode, GeometryBuilder, FillMode, StrokeMode}};
 use strum::IntoEnumIterator;
 use crate::{components::*, resources::BallChainBotAnimations};
+
+#[derive(Component)]
+pub struct AISpawner;
 
 pub fn insert_ai_resources(
     mut commands: Commands,
@@ -37,10 +40,32 @@ pub fn insert_ai_resources(
         animation_map
     });
 
-    // Create AI To Test
-    let idle_down_image_handle = asset_server.load("ball_chain_bot\\right\\idle.png");
-    let idle_down_texture_atlas = TextureAtlas::from_grid(idle_down_image_handle, Vec2::new(192.0, 192.0), 5, 1);
-    let idle_down_texture_atlas_handle = texture_atlases.add(idle_down_texture_atlas);
+    commands.spawn()
+    .insert(Timer::from_seconds(5.0, true))
+    .insert(AISpawner);
+}
+
+pub fn ball_chain_bot_spawner(
+    ball_chain_bot_animations: Res<BallChainBotAnimations>,
+    delta_time: Res<Time>,
+    mut commands: Commands,
+    mut query: Query<&mut Timer, With<AISpawner>>,
+    ground_query: Query<&Ground>
+) {
+    let mut timer = query.single_mut();
+    timer.tick(delta_time.delta());
+
+    if !timer.just_finished() {
+        return;
+    }
+
+    let ground = ground_query.single();
+    let mut rng = rand::thread_rng();
+    if ground.0 < 1.0 {
+        return;
+    }
+
+    let x_pos = rng.gen_range(-ground.0/4.0..ground.0/4.0);
 
     let ai_hitbox = CollisionShape{
         width: 25.0,
@@ -49,20 +74,25 @@ pub fn insert_ai_resources(
         collides_with: CollisionMasks::Player as i32 | CollisionMasks::PlayerAttack as i32 | CollisionMasks::Ground as i32,
         ..Default::default() 
     };
-    
+
+    let texture_atlas_handle = ball_chain_bot_animations.animation_map.get(&StateKind::Idle).unwrap().get(&DirectionName::Right).unwrap();
     let ai = commands.spawn()
         .insert_bundle(SpriteSheetBundle {
-            texture_atlas: idle_down_texture_atlas_handle,
-            transform: Transform::from_xyz(0.0,0.0,0.0),
+            texture_atlas: texture_atlas_handle.clone(),
+            transform: Transform::from_xyz(x_pos,-125.0,0.0),
             ..Default::default()
         })
         .insert(ai_hitbox)
         .insert(Stateful { ..Default::default() })
         .insert(Timer::from_seconds(0.1, true))
         .insert(AI)
-        .insert(crate::components::Direction { angle: 0.0, name: crate::components::DirectionName::Right, new_direction: false })
+        .insert(crate::components::Direction { angle: 0.0, name: crate::components::DirectionName::Right, new_direction: false, flip_x: 1.0 })
         .insert(Velocity { ..Default::default() })
-        .insert_bundle(StatsBundle{ ..Default::default() })
+        .insert_bundle(StatsBundle { 
+            max_health: MaxHealth { value: 35.0},
+            current_health: CurrentHealth { value: 35.0 },
+            ..Default::default() 
+        })
         .insert(Aim { ..Default::default() })
         .id();
 

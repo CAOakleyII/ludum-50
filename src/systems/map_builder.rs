@@ -24,7 +24,7 @@ pub fn build_map (
             fill_mode: FillMode::color(Color::BLACK),
             outline_mode: StrokeMode::new(Color::BLACK, 1.0),
         },
-        Transform::from_xyz(0.0, -200.0, 0.0),
+        Transform::from_xyz(0.0, -175.0, 0.0),
     ))
     .insert(Timer::from_seconds(5.0, true))
     .insert(floor_hitbox)

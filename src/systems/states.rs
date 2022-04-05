@@ -4,7 +4,8 @@ use crate::{components::{Stateful, Direction, Player, DirectionName, Velocity, S
 
 pub fn process_state_queues(
     mut commands: Commands,
-    mut query: Query<(&mut Stateful, Entity)>
+    mut query: Query<(&mut Stateful, Entity)>,
+    mut velocity_query: Query<&mut Velocity>
 ) {
     for (mut stateful, entity) in query.iter_mut() {
         let mut new_state = &stateful.current_state;
@@ -17,6 +18,10 @@ pub fn process_state_queues(
                 is_new_state = true;
                 if state.should_root {
                     commands.entity(entity).insert(Rooted);
+                    if let Ok(mut velocity) = velocity_query.get_component_mut::<Velocity>(entity) {
+                        velocity.vector.x = 0.0;
+                        velocity.vector.y = 0.0;
+                    }
                 } else {
                     commands.entity(entity).remove::<Rooted>();
                 }
@@ -63,9 +68,9 @@ pub fn determine_movement_state(
 
 pub fn animate_player_states(
     player_animations: Res<PlayerAnimations>,
-    mut query: Query<(&mut Handle<TextureAtlas>, &mut TextureAtlasSprite, &Stateful, &Direction), With<Player>>
+    mut query: Query<(&mut Handle<TextureAtlas>, &mut TextureAtlasSprite, &Stateful, &mut Direction), With<Player>>
 ) {
-    for (mut handle, mut sprite, stateful, direction) in query.iter_mut() {
+    for (mut handle, mut sprite, stateful, mut direction) in query.iter_mut() {
         if !stateful.new_state && !direction.new_direction {
             continue
         }
@@ -75,9 +80,11 @@ pub fn animate_player_states(
         sprite.index = 0 as usize;
         if &direction.name == &DirectionName::Left {
             sprite.flip_x = true;
+            direction.flip_x = -1.0;
             // x = x * -1
         } else {
             sprite.flip_x = false;
+            direction.flip_x = 1.0;
         }
     }
 }

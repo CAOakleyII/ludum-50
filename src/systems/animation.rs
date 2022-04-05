@@ -30,10 +30,10 @@ pub fn draw_health_bars(
 ) {
     for (mut path, parent) in query.iter_mut() {
         if let Ok((current_health, max_health)) = parent_query.get(parent.0) {
-    
+            let health_percent = (current_health.value / max_health.value).clamp(0.0, 1.0);
             let polygon = shapes::Rectangle { 
                 origin: RectangleOrigin::TopLeft,
-                extents: Vec2::new((40.0 * (current_health.value / max_health.value)).clamp(0.0, 40.0), 3.0)
+                extents: Vec2::new((20.0 * health_percent).clamp(0.0, 20.0), 3.0)
             };
     
             *path = ShapePath::build_as(&polygon);
