@@ -42,10 +42,12 @@ pub enum StateKind {
     Fall,
     Dash,
     StabDash,
+    Death,
     MeleeAttack,
     TripleAttack,
     ChargeBow,
     ReleaseBow,
+    AIAttack,
 }
 
 impl StateKind {
@@ -70,7 +72,8 @@ impl StateKind {
         match self {
             Self::Idle => Vec3::new(5.0, 1.0, 5.0),
             Self::Run => Vec3::new(8.0, 1.0, 8.0),
-            Self::MeleeAttack => Vec3::new(12.0, 1.0, 12.0),
+            Self::Death => Vec3::new(5.0, 1.0, 5.0),
+            Self::AIAttack => Vec3::new(12.0, 1.0, 12.0),
             _ => Vec3::ZERO
         }
     }
@@ -79,6 +82,12 @@ impl StateKind {
 
 #[derive(Component)]
 pub struct Damaged(pub f32);
+
+#[derive(Component)]
+pub struct Dead(pub Timer);
+
+#[derive(Component)]
+pub struct Hit(pub Timer);
 
 #[derive(Component)]
 pub struct HealthBar;
@@ -90,7 +99,17 @@ pub struct Grounded;
 pub struct Ground(pub f32);
 
 #[derive(Component)]
-pub struct Rooted;
+pub struct Rooted {
+    pub timer: Timer
+}
+
+impl Default for Rooted { 
+    fn default() -> Self {
+        Self{
+            timer: Timer::from_seconds(1.0, true)
+        }
+    }
+}
 
 #[derive(Component)]
 pub struct Jumping {

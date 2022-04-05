@@ -1,6 +1,6 @@
 use bevy::{prelude::*};
 
-use crate::components::{Velocity, Gravity, Grounded, CollisionShape, Ground, Jumping, State, Stateful, StateKind, Direction, Dashing};
+use crate::components::{Velocity, Gravity, Grounded, CollisionShape, Ground, Jumping, State, Stateful, StateKind, Direction, Dashing, Rooted};
 
 pub fn process_movement(
     delta_time: Res<Time>,
@@ -99,6 +99,23 @@ pub fn ground_collision(
             if let Ok(e) = get_entity_with_grounded.get(*entity) {
                 commands.entity(e).remove::<Grounded>();
             }
+        }
+    }
+}
+
+pub fn apply_roots(
+    mut commands: Commands,
+    delta_time: Res<Time>,
+    mut get_rooted_entities: Query<(&mut Rooted, &mut Velocity, Entity)>
+) {
+    for (mut rooted, mut velocity, entity) in get_rooted_entities.iter_mut() {
+        rooted.timer.tick(delta_time.delta());
+
+        velocity.vector.x = 0.0;
+        velocity.vector.y = 0.0;
+
+        if rooted.timer.just_finished() && !rooted.timer.repeating() {
+            commands.entity(entity).remove::<Rooted>();
         }
     }
 }

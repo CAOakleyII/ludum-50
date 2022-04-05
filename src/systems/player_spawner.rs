@@ -47,7 +47,7 @@ pub fn player_spawner(
 
     // create camera
     let mut camera = OrthographicCameraBundle::new_2d();
-    camera.orthographic_projection.scale = 0.5;
+    camera.orthographic_projection.scale = 0.38;
     commands.spawn_bundle(camera);
 
     // create player
@@ -64,7 +64,7 @@ pub fn player_spawner(
     let player = commands.spawn()
         .insert_bundle(SpriteSheetBundle {
             texture_atlas: idle_down_texture_atlas_handle,
-            transform: Transform::from_xyz(0.0,-100.0,0.0),
+            transform: Transform::from_xyz(0.0,-100.0,1.0),
             ..Default::default()
         })
         .insert(player_hitbox)

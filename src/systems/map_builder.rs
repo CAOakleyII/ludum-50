@@ -26,7 +26,7 @@ pub fn build_map (
         },
         Transform::from_xyz(0.0, -175.0, 0.0),
     ))
-    .insert(Timer::from_seconds(5.0, true))
+    .insert(Timer::from_seconds(15.0, true))
     .insert(floor_hitbox)
     .insert(Ground(500.0));
 }

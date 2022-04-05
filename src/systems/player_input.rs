@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+
 use crate::components::{Velocity, Speed, Player, Aim, Stateful, StateKind, Direction, DirectionName, Rooted, Grounded, State, Jumping, JumpHeight, DashDistance, Dashing};
 
 pub fn player_input(
@@ -21,14 +22,6 @@ pub fn player_input(
             direction.name = DirectionName::Right;
             force_x += 1.0;
         }
-        // if keyboard_input.pressed(KeyCode::W) {
-        //     direction.name = DirectionName::Up;
-        //     force_y += 1.0;
-        // }
-        // if keyboard_input.pressed(KeyCode::S) {
-        //     direction.name = DirectionName::Down;
-        //     force_y -= 1.0;
-        // }
 
         // Force Normalization
         let length = (force_x * force_x + force_y * force_y).sqrt();
@@ -114,7 +107,7 @@ pub fn player_dash_attack_input(
             
             commands.entity(entity)
                 .insert(Dashing {
-                    force: dash_distance.value / 2.0,
+                    force: dash_distance.value / 3.0,
                     timer: Timer::from_seconds(0.3, false)
                 });
         }

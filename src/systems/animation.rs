@@ -1,7 +1,7 @@
-use bevy::prelude::*;
-use bevy_prototype_lyon::{prelude::{Path, RectangleOrigin, ShapePath, GeometryBuilder, FillMode, StrokeMode, DrawMode}, shapes, render::Shape};
+use bevy::{prelude::*, ecs::system::Command};
+use bevy_prototype_lyon::{prelude::{Path, RectangleOrigin, ShapePath, GeometryBuilder, FillMode, StrokeMode, DrawMode}, shapes};
 
-use crate::components::{Stateful, HealthBar, CurrentHealth, MaxHealth, CollisionShape};
+use crate::{components::{Stateful, HealthBar, CurrentHealth, MaxHealth, CollisionShape, Player, DirectionName, Direction, BallChainBot, Hit}, resources::{PlayerAnimations, BallChainBotAnimations}};
 
 pub fn animate_sprites(
     delta_time: Res<Time>,
@@ -37,6 +37,77 @@ pub fn draw_health_bars(
             };
     
             *path = ShapePath::build_as(&polygon);
+        }
+    }
+}
+
+pub fn animate_player_states(
+    player_animations: Res<PlayerAnimations>,
+    mut query: Query<(&mut Handle<TextureAtlas>, &mut TextureAtlasSprite, &Stateful, &mut Direction), With<Player>>
+) {
+    for (mut handle, mut sprite, stateful, mut direction) in query.iter_mut() {
+        if !stateful.new_state && !direction.new_direction {
+            continue
+        }
+
+        *handle = player_animations.animation_map.get(&stateful.current_state.kind).unwrap().get(&direction.name).unwrap().clone();
+
+        sprite.index = 0 as usize;
+        if &direction.name == &DirectionName::Left {
+            sprite.flip_x = true;
+            direction.flip_x = -1.0;
+            // x = x * -1
+        } else {
+            sprite.flip_x = false;
+            direction.flip_x = 1.0;
+        }
+    }
+}
+
+pub fn animate_ball_chain_bot_states(
+    ai_animations: Res<BallChainBotAnimations>,
+    mut query: Query<(&mut Handle<TextureAtlas>, &mut TextureAtlasSprite, &Stateful, &mut Direction), With<BallChainBot>>
+) {
+    for (mut handle, mut sprite, stateful, mut direction) in query.iter_mut() {
+        if !stateful.new_state && !direction.new_direction {
+            continue
+        }
+
+        *handle = ai_animations.animation_map.get(&stateful.current_state.kind).unwrap().get(&direction.name).unwrap().clone();
+
+        sprite.index = 0 as usize;
+        if &direction.name == &DirectionName::Left {
+            sprite.flip_x = true;
+            direction.flip_x = -1.0;
+            // x = x * -1
+        } else {
+            sprite.flip_x = false;
+            direction.flip_x = 1.0;
+        }
+    }
+}
+
+pub fn draw_hit(
+    mut commands: Commands,
+    delta_time: Res<Time>,
+    mut query: Query<(&mut TextureAtlasSprite, &mut Hit, Entity)>
+) {
+    for (mut sprite, mut hit, entity) in query.iter_mut() {
+        if hit.0.finished() {
+            return;
+        }
+        if sprite.color == Color::WHITE {
+            sprite.color = Color::BLACK;
+        } else {
+            sprite.color = Color::WHITE;
+        }
+
+        hit.0.tick(delta_time.delta());
+
+        if hit.0.just_finished() {
+            sprite.color = Color::WHITE;            
+            commands.entity(entity)
+                .remove::<Hit>();
         }
     }
 }

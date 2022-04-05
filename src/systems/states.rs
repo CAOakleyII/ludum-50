@@ -1,27 +1,24 @@
-use bevy::{prelude::{Query, Res, Handle, With, Transform, Commands, Entity}, sprite::{TextureAtlas, TextureAtlasSprite}, math::Vec3};
+use bevy::{prelude::{Query, With, Commands, Entity}, math::Vec3};
 
-use crate::{components::{Stateful, Direction, Player, DirectionName, Velocity, StateKind, State, Rooted, Grounded}, resources::PlayerAnimations};
+use crate::components::{Stateful, Velocity, StateKind, State, Rooted, Grounded};
 
 pub fn process_state_queues(
     mut commands: Commands,
-    mut query: Query<(&mut Stateful, Entity)>,
-    mut velocity_query: Query<&mut Velocity>
+    mut query: Query<(&mut Stateful, Entity)>
 ) {
     for (mut stateful, entity) in query.iter_mut() {
         let mut new_state = &stateful.current_state;
         let mut is_new_state = false;
 
         for state in stateful.next_states.iter() {
-            if  state.kind != stateful.current_state.kind && 
-                (stateful.current_state.interruptable || !stateful.current_state.running) {
+            if (state.kind != stateful.current_state.kind && 
+                (stateful.current_state.interruptable || !stateful.current_state.running)) || 
+                state.kind == StateKind::Death 
+            {
                 new_state = state;
                 is_new_state = true;
                 if state.should_root {
-                    commands.entity(entity).insert(Rooted);
-                    if let Ok(mut velocity) = velocity_query.get_component_mut::<Velocity>(entity) {
-                        velocity.vector.x = 0.0;
-                        velocity.vector.y = 0.0;
-                    }
+                    commands.entity(entity).insert(Rooted { ..Default::default() });
                 } else {
                     commands.entity(entity).remove::<Rooted>();
                 }
@@ -63,28 +60,5 @@ pub fn determine_movement_state(
             };
         }
         state.next_states.insert(movement_state);
-    }
-}
-
-pub fn animate_player_states(
-    player_animations: Res<PlayerAnimations>,
-    mut query: Query<(&mut Handle<TextureAtlas>, &mut TextureAtlasSprite, &Stateful, &mut Direction), With<Player>>
-) {
-    for (mut handle, mut sprite, stateful, mut direction) in query.iter_mut() {
-        if !stateful.new_state && !direction.new_direction {
-            continue
-        }
-
-        *handle = player_animations.animation_map.get(&stateful.current_state.kind).unwrap().get(&direction.name).unwrap().clone();
-
-        sprite.index = 0 as usize;
-        if &direction.name == &DirectionName::Left {
-            sprite.flip_x = true;
-            direction.flip_x = -1.0;
-            // x = x * -1
-        } else {
-            sprite.flip_x = false;
-            direction.flip_x = 1.0;
-        }
     }
 }

@@ -1,6 +1,7 @@
 use bevy::core::Time;
+use bevy::math::{Vec3, Vec2};
 use bevy::prelude::{Query, Transform, Res, Entity, Commands};
-use bevy::sprite::collide_aabb::*;
+
 
 use crate::components::CollisionShape;
 
@@ -30,7 +31,7 @@ pub fn process_collisions(
         );
         
         match is_colliding {
-            None => {
+            false => {
                 if collision_shape.collisions.contains(&other_entity) {
                     collision_shape.collisions.remove(&other_entity);
                     collision_shape.collisions_just_ended.insert(other_entity);
@@ -44,13 +45,23 @@ pub fn process_collisions(
                     other_collision_shape.collisions_just_ended.remove(&entity);
                 }
             },
-            Some(_collision_side) => {
+            true => {
                 collision_shape.collisions.insert(other_entity);
                 other_collision_shape.collisions.insert(entity);
             }
         }
 
     }
+}
+
+fn collide(a_pos: Vec3, a_size: Vec2, b_pos: Vec3, b_size: Vec2) -> bool {
+    let a_min = a_pos.truncate() - a_size / 2.0;
+    let a_max = a_pos.truncate() + a_size / 2.0;
+
+    let b_min = b_pos.truncate() - b_size / 2.0;
+    let b_max = b_pos.truncate() + b_size / 2.0;
+    
+    return a_min.x < b_max.x && a_max.x > b_min.x && a_min.y < b_max.y && a_max.y > b_min.y;
 }
 
 fn can_collide(shape_a: &CollisionShape, shape_b: &CollisionShape) -> bool {

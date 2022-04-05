@@ -29,6 +29,11 @@ pub struct MaxHealth{
     pub value: f32
 }
 
+#[derive(Component)]
+pub struct AttackRange {
+    pub value: f32
+}
+
 #[derive(Bundle)]
 pub struct StatsBundle {
     pub speed: Speed,
@@ -36,6 +41,7 @@ pub struct StatsBundle {
     pub current_health: CurrentHealth,
     pub max_health: MaxHealth,
     pub dash_distance: DashDistance,
+    pub attack_range: AttackRange,
     pub gravity: Gravity,
 }
 
@@ -46,7 +52,8 @@ impl Default for StatsBundle {
             jump_height: JumpHeight { value: 375.0 },
             current_health: CurrentHealth { value: 100.0 },
             max_health: MaxHealth { value: 100.0 },
-            dash_distance: DashDistance { value: 75.0 },
+            dash_distance: DashDistance { value: 100.0 },
+            attack_range: AttackRange { value: 250.0 },
             gravity: Gravity { value: 175.0 }
         }
     }
